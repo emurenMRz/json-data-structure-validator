@@ -4,13 +4,24 @@ import Format from "./Format.js";
 
 export { ValidationError, ValidType };
 
+class DifferentTypeError extends ValidationError {
+	constructor(target, requiredFormat, nodePath) {
+		let l = typeof target;
+		let r = typeof requiredFormat;
+		if (l === "object") l += `: ${JSON.stringify(target)}`
+		if (r === "object") r += `: ${JSON.stringify(requiredFormat)}`
+
+		super(`${nodePath}Required format different:\n\tobject: ${l}\n\trequired format: ${r}`);
+	}
+}
+
 function core(o, format, parentKey = undefined) {
 	const nodePath = parentKey ? `[${parentKey}] ` : '';
 	if (format === undefined || format === null)
 		throw new ValidationError(`${nodePath}Empty format: ${format}`);
 
 	if (typeof format === "function")
-		return format(o);
+		return format(o, nodePath);
 
 	if (format instanceof Array) {
 		if (format.length === 0)
@@ -30,7 +41,7 @@ function core(o, format, parentKey = undefined) {
 	}
 
 	if (typeof o !== typeof format)
-		throw new ValidationError(`${nodePath}Different type: ${typeof o} <=> ${typeof format}`);
+		throw new DifferentTypeError(o, format, nodePath);
 	if (!(format instanceof Format))
 		throw new ValidationError(`${nodePath}Invalid format: ${JSON.stringify(o)}`);
 
@@ -43,7 +54,7 @@ function core(o, format, parentKey = undefined) {
 			extra.push(key);
 		else if (r.isArray) {
 			if (!(l instanceof Array))
-				throw new ValidationError(`${nodePath}Different type: ${typeof l} <=> ${typeof r}`);
+				throw new DifferentTypeError(l, r, nodePath);
 			o[key] = l.map((v, index) => core(v, r.type, `${parentKey}.${key}[${index}]`));
 		} else
 			o[key] = core(l, r.type, `${parentKey}.${key}`);
@@ -61,7 +72,7 @@ export function validate(o, format) {
 		format = new Format(format);
 
 	if (o instanceof Array)
-		o.forEach((oo, i, a) => a[i] = core(oo, format));
+		o.forEach((oo, i, a) => a[i] = core(oo, format, `*[${i}]`));
 	else
-		core(o, format);
+		core(o, format, "*");
 }

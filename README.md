@@ -152,11 +152,15 @@ const json = {
 };
 
 validate(json, {
-	ids: v => {
+	ids: (v, nodePath) => {
 		if (typeof v !== "string")
-			throw new ValidationError(`Need ids '${v}'`);
+			throw new ValidationError(`${nodePath}Need ids '${JSON.stringify(v)}'`);
 		return v.split(",");
 	}
 });
 # json.ids: "1,2,3,4,5" => json.ids: [1,2,3,4,5]
 ```
+
+The first argument is the value to be verified. This is required.
+
+The second argument "`nodePath`" is the node path being verified. It is not required, but is effective when an exception occurs in a deep object.
