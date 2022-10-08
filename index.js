@@ -8,8 +8,10 @@ class DifferentTypeError extends ValidationError {
 	constructor(target, requiredFormat, nodePath) {
 		let l = typeof target;
 		let r = typeof requiredFormat;
-		if (l === "object") l += `: ${JSON.stringify(target)}`
-		if (r === "object") r += `: ${JSON.stringify(requiredFormat)}`
+		if (l === "object") l += `(${target.constructor.name})`;
+		if (r === "object") r += `(${requiredFormat.constructor.name})`;
+		l += `: ${JSON.stringify(target)}`;
+		r += `: ${JSON.stringify(requiredFormat)}`;
 
 		super(`${nodePath}Required format different:\n\tobject: ${l}\n\trequired format: ${r}`);
 	}

@@ -44,6 +44,16 @@ class Item {
 		this.#type = type;
 	}
 
+	toString() { return this.#rawKey + ": " + JSON.stringify(this.toJSON()); }
+	toJSON() {
+		const type = this.#type;
+		if (type instanceof Array)
+			return type.map(v => v.toJSON());
+		else if (type instanceof Format)
+			return type.toJSON();
+		return type.name;
+	}
+
 	get name() { return this.#name; }
 	get isOption() { return this.#isOption; }
 	get isArray() { return this.#isArray; }
@@ -61,6 +71,9 @@ export default class Format {
 			throw new ValidationError("'format' is not object.");
 		this.#item = Object.keys(format).map(key => new Item(key, format[key]));
 	}
+
+	toString() { return JSON.stringify(this.toJSON()); }
+	toJSON() { return Object.fromEntries(this.#item.map(v => [v.rawKey, v.toJSON()])); }
 
 	get empty() { return this.#item.length === 0; }
 	get noReference() { return this.#item.filter(v => !v.reference && !v.isOption).map(v => v.rawKey); }
