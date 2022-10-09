@@ -48,7 +48,7 @@ class Item {
 	toJSON() {
 		const type = this.#type;
 		if (type instanceof Array)
-			return type.map(v => v.toJSON());
+			return type.map(v => v instanceof Format ? v.toJSON() : v.name);
 		else if (type instanceof Format)
 			return type.toJSON();
 		return type.name;
