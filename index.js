@@ -70,11 +70,27 @@ function core(o, format, parentKey = undefined) {
 }
 
 export function validate(o, format) {
-	if (typeof format !== "function")
-		format = new Format(format);
+	const essence = (o, format) => {
+		if (typeof format !== "function")
+			format = new Format(format);
 
-	if (o instanceof Array)
-		o.forEach((oo, i, a) => a[i] = core(oo, format, `*[${i}]`));
-	else
-		core(o, format, "*");
+		if (o instanceof Array)
+			o.forEach((oo, i, a) => a[i] = core(oo, format, `*[${i}]`));
+		else
+			core(o, format, "*");
+	}
+
+	if (format instanceof Array) {
+		const find = format.some(fmt => {
+			try {
+				essence(o, fmt);
+				return true;
+			} catch {
+				return false;
+			}
+		});
+		if (!find)
+			throw new ValidationError(`None of the types apply: ${JSON.stringify(format)}, ${JSON.stringify(o)}`);
+	} else
+		essence(o, format);
 }
