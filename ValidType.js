@@ -20,9 +20,19 @@ const ValidType = {
 	},
 
 	Null: (target, nodePath) => {
-		if (target !== null && !(target instanceof Array && target.length == 0))
+		if (target !== null)
 			throw new ValidationError(`${nodePath}Need null: ${JSON.stringify(target)}`);
 		return null;
+	},
+
+	Empty: (target, nodePath) => {
+		if (target === undefined) return undefined;
+		if (target === null) return undefined;
+		if (target instanceof Array && target.length === 0) return undefined;
+		if (typeof target !== 'object') return undefined;
+		if (Object.entries(target).length === 0) return undefined;
+
+		throw new ValidationError(`${nodePath}Need empty: ${JSON.stringify(target)}`);
 	},
 };
 Object.freeze(ValidType);
